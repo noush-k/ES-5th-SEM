@@ -1,0 +1,29 @@
+#include<lpc17xx.h>
+#include<stdio.h>
+unsigned int i,j;
+unsigned int LED=0X00000800;
+
+void delay()
+{
+	for(i=0; i<1000; i++);
+}
+
+int main()
+{
+	SystemInit();
+	SystemCoreClockUpdate();
+	
+	LPC_PINCON->PINSEL0|=0X00; //P0.4-P0.11
+	LPC_GPIO0->FIODIR=0X00000FF0; //OUTPUT LINES
+	
+	while(1)
+	{
+		for(j=0; j<8; j++)
+		{
+			LPC_GPIO0->FIOSET=LED;
+		  delay();
+			LED=LPC_GPIO0->FIOPIN>>1;
+		}
+		LED=0X00000800;
+	}
+}
