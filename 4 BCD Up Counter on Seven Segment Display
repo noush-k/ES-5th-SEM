@@ -1,0 +1,111 @@
+#include<lpc17xx.h>
+
+#define first 0<<23;
+#define second 1<<23;
+#define third 2<<23;
+#define fourth 3<<23;
+
+unsigned int dig1=0x00, dig2=0x00, dig3=0x00, dig4=0x00;
+unsigned int twenty_count=0x00, dig_count=0x00, temp1=0x00;
+unsigned char seven_segment[10]={0x3f,0x06,0x5b,0x4f,0x66,0x7d,0x6d,0x07,0x7f,0x6f};
+unsigned char tmr0_flag=0x00, one_sec_flag=0x00;
+unsigned long int temp2=0x00000000, i=0;
+unsigned int temp3=0x00;
+
+void delay()
+{
+	for(i=0; i<1000; i++);
+	if(twenty_count==1000)
+	{
+		one_sec_flag=0xFF;
+		twenty_count=0X00;
+	}
+	else
+		twenty_count+=1;
+}
+
+void display();
+
+int main()
+{
+	SystemInit();
+	SystemCoreClockUpdate();
+	
+	LPC_PINCON->PINSEL0|=0X00; //P0.4-P0.11
+	LPC_PINCON->PINSEL3|=0X00; //P1.23-P1.26
+	LPC_GPIO0->FIODIR=0X00000FF0; //OUTPUT
+	LPC_GPIO1->FIODIR=0X07800000; //OUTPUT
+	
+	while(1)
+	{
+		delay();
+		
+		dig_count+=1;
+		if(dig_count==0x05)
+			dig_count=0x00;
+		
+		if(one_sec_flag==0xFF)
+		{
+			one_sec_flag=0x00;
+			
+			dig1+=1;
+			if(dig1==0x0A)
+			{
+				dig1=0x00;
+				
+				dig2+=1;
+				if(dig2==0x0A)
+				{
+					dig2=0x00;
+					
+					dig3+=1;
+					if(dig3==0x0A)
+					{
+						dig3=0x00;
+						
+						dig4+=1;
+						if(dig4==0x0A)
+						{
+							dig4=0x00;
+						}
+					}
+				}
+			}
+		}
+		
+		display();
+	}
+}
+
+void display()
+{
+	if(dig_count==0x01)
+	{
+		temp1=dig1;
+		LPC_GPIO1->FIOPIN=first;
+	}
+	
+	if(dig_count==0x02)
+	{
+		temp1=dig2;
+		LPC_GPIO1->FIOPIN=second;
+	}
+	if(dig_count==0x03)
+	{
+		temp1=dig3;
+		LPC_GPIO1->FIOPIN=third;
+	}
+	if(dig_count==0x04)
+	{
+		temp1=dig4;
+		LPC_GPIO1->FIOPIN=fourth;
+	}
+	
+	temp1&=0x0F;
+	temp2=seven_segment[temp1]<<4;
+	LPC_GPIO0->FIOPIN=temp2;
+	
+	delay();
+	LPC_GPIO0->FIOCLR=0X00000FF0;
+	LPC_GPIO1->FIOPIN=0XFA7FFFFF;
+}
