@@ -1,0 +1,47 @@
+#include<lpc17xx.h>
+
+#define FIRST 0<<23
+#define SECOND 1<<23
+#define THIRD 2<<23
+#define FOURTH 3<<23
+
+unsigned int digcount=0;
+unsigned int digval[5]={0, 1, 2, 3, 4};
+unsigned int select_segment[5]={0, 0<<23, 1<<23, 2<<23, 3<<23};
+unsigned char seven_segment[10]={0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f};
+unsigned int temp1, temp2, i, j;
+
+void delay()
+{
+	for(i=0; i<1000; i++);
+}
+
+void display_sev_segment()
+{
+	LPC_GPIO1->FIOPIN=select_segment[digcount];
+	LPC_GPIO0->FIOPIN=seven_segment[digval[digcount]]<<4;
+	delay();
+	LPC_GPIO0->FIOCLR=0X00000FF0;
+}
+
+int main()
+{
+	SystemInit();
+	SystemCoreClockUpdate();
+	
+	LPC_PINCON->PINSEL0|=0X00; //P0.4 to P0.11 as GPIO
+	LPC_PINCON->PINSEL3|=0X00; //P1.23 to P1.26 as GPIO function 1
+	LPC_GPIO0->FIODIR=0X00000FF0; //OUTPUT LINES
+	LPC_GPIO1->FIODIR=0X07800000; //OUTPUT LINES
+	
+	while(1)
+	{
+		delay();
+		
+		digcount+=1;
+		if(digcount==0x05)
+			digcount=0x00;
+		
+		display_sev_segment();
+	}
+}
